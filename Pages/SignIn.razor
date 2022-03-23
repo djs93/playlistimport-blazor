@@ -1,0 +1,31 @@
+﻿@page "/SignIn"
+@using playlistimport_blazor.Data
+@using Microsoft.Extensions.Logging
+@inject ILogger<SignIn> _logger
+<h3>Sign Up</h3>
+
+<EditForm Model="@exampleUser" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    
+    <label for="userName">User Name</label> <br/>
+    <InputText id="userName" @bind-Value="exampleUser.UserName" /> <br/>
+    <label for="password">Password</label> <br/>
+    <InputText type="password" id="password" @bind-Value="exampleUser.Password" /> <br/>
+    <label for="email">Email</label> <br/>
+    <InputText id="email" @bind-Value="exampleUser.EmailAddress" /> <br/>
+
+    <button type="submit">Submit</button>
+</EditForm>
+
+@code {
+    private User exampleUser = new();
+
+    private void HandleValidSubmit()
+    {
+        _logger.LogInformation("HandleValidSubmit called");
+        _logger.LogInformation($"User information: \nuserName:{exampleUser.UserName} \npassword:{exampleUser.Password} \nemail:{exampleUser.EmailAddress} \n");
+
+        // Process the valid form
+    }
+}

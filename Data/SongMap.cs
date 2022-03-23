@@ -7,11 +7,12 @@ public sealed class SongMap : ClassMap<Song>
 {
     public SongMap()
     {
-        Map(m => m.Name);
-        Map(m => m.Artist);
-        Map(m => m.Composer);
-        Map(m => m.Genre);
-        Map(m => m.Year).TypeConverter<CustomDateYearConverter>();
-        Map(m => m.Plays).TypeConverter<CustomIntConverter>();
+        Map(m => m.Name).Name("Name", "Track Name");
+        Map(m => m.Artist).Name("Artist", "Artist Name(s)");
+        Map(m => m.Composer).Optional();
+        Map(m => m.Genre).Optional();
+        Map(m => m.Year).Name("Year", "Album Release Date").TypeConverter<CustomDateYearConverter>();
+        Map(m => m.Plays).TypeConverter<CustomIntConverter>().Optional();
+        Map(m => m.Popularity).TypeConverter<CustomIntConverter>().Optional();
     }
 }

@@ -2,8 +2,12 @@
 @using System.IO
 @using Microsoft.AspNetCore.Hosting
 @using Microsoft.Extensions.Logging
-@inject ILogger<FileUpload> Logger
-@inject IWebHostEnvironment Environment
+@using playlistimport_blazor.Data
+@using playlistimport_blazor.Utilities
+@inject ILogger<FileUpload> _logger
+@inject IWebHostEnvironment _environment
+@inject TableDataService _tableDataService
+@inject NavigationManager _navigationManager
 
 <h3>Upload Files</h3>
 
@@ -14,59 +18,49 @@
     </label>
 </p>
 
-@if (isLoading)
+@if (_isLoading)
 {
     <p>Uploading...</p>
 }
 else
 {
-    <ul>
-        @foreach (var file in loadedFiles)
-        {
-            <li>
-                <ul>
-                    <li>Name: @file.Name</li>
-                    <li>Last modified: @file.LastModified.ToString()</li>
-                    <li>Size (bytes): @file.Size</li>
-                    <li>Content type: @file.ContentType</li>
-                </ul>
-            </li>
-        }
-    </ul>
+    <p>Redirecting to results...</p>
 }
 
 @code {
-    private List<IBrowserFile> loadedFiles = new();
-    private long maxFileSize = 1024 * 15;
-    private int maxAllowedFiles = 3;
-    private bool isLoading;
+    private long maxFileSize = 1024 * 1000;
+    private bool _isLoading;
 
     private async Task LoadFiles(InputFileChangeEventArgs e)
     {
-        isLoading = true;
-        loadedFiles.Clear();
-
-        foreach (var file in e.GetMultipleFiles(maxAllowedFiles))
+        _isLoading = true;
+        
+        try
         {
-            try
-            {
-                loadedFiles.Add(file);
+            var trustedFileNameForFileStorage = Path.GetRandomFileName();
+            var path = Path.Combine(_environment.ContentRootPath,
+                    _environment.EnvironmentName, "unsafe_uploads",
+                    trustedFileNameForFileStorage);
 
-                var trustedFileNameForFileStorage = Path.GetRandomFileName();
-                var path = Path.Combine(Environment.ContentRootPath,
-                        Environment.EnvironmentName, "unsafe_uploads",
-                        trustedFileNameForFileStorage);
-
-                await using FileStream fs = new(path, FileMode.Create);
-                await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError("File: {Filename} Error: {Error}", 
-                    file.Name, ex.Message);
-            }
+            await using FileStream fs = new(path, FileMode.Create);
+            await e.File.OpenReadStream(maxFileSize).CopyToAsync(fs);
+            await fs.FlushAsync();
+            await fs.DisposeAsync();
+            var songs = await CsvRead.ReadRecordsAsync(path, new SongMap());
+            await _tableDataService.SetSongsAsync(songs);
         }
+        catch (Exception ex)
+        {
+            _logger.LogError("File: {Filename} Error: {Error}", 
+                e.File.Name, ex.Message);
+        }
+        
+        _isLoading = false;
+        GotoDataPage();
+    }
 
-        isLoading = false;
+    private void GotoDataPage()
+    {
+        _navigationManager.NavigateTo("fetchdata");
     }
 }

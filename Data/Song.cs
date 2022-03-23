@@ -8,6 +8,7 @@ public class Song
     public string Genre { get; set; }
     public DateOnly Year { get; set; }
     public int Plays { get; set; }
+    public int Popularity { get; set; }
 
     public override bool Equals(object? other)
     {

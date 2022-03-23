@@ -1,46 +1,153 @@
 ﻿@page "/fetchdata"
 
-<PageTitle>Weather forecast</PageTitle>
+<PageTitle>Song List</PageTitle>
 
 @using playlistimport_blazor.Data
 @inject TableDataService TableDataService
+@inject NavigationManager _navigationManager
 
-<h1>Weather forecast</h1>
+<h1>Song List</h1>
 
-<p>This component demonstrates fetching data from a service.</p>
-
-@if (loadedSongs == null)
+@if (_loadedSongs == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Artist</th>
-                <th>Year</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var song in loadedSongs)
-            {
-                <tr>
-                    <td>@song.Name</td>
-                    <td>@song.Artist</td>
-                    <td>@song.Year.Year</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    @if (_loadedSongs.Count <= 0)
+    {
+        <p><em>No data loaded!</em></p><br/>
+        <NavLink class="text-decoration-none" href="fileupload">
+            File Upload
+        </NavLink>
+    }
+    @if (_loadedSongs.Count > 0)
+    {
+         <table class="table">
+             <thead>
+             <tr>
+                 <th>
+                     <span onclick="@(() => SortTable("Name"))">Name</span>
+                     <span class="oi @(GetSortStyle("Name"))"></span>
+                 </th>
+                 <th>
+                     <span onclick="@(() => SortTable("Artist"))">Artist</span>
+                     <span class="oi @(GetSortStyle("Artist"))"></span>
+                 </th>
+                 <th>
+                     <span onclick="@(() => SortTable("Year"))">Year</span>
+                     <span class="oi @(GetSortStyle("Year"))"></span>
+                 </th>
+                 @if (_dataIsSpotify)
+                 {
+                     <th>
+                         <span onclick="@(() => SortTable("Popularity"))">Popularity</span>
+                         <span class="oi @(GetSortStyle("Popularity"))"></span>
+                     </th>
+                 }
+                 @if (!_dataIsSpotify)
+                 {
+                     <th>
+                         <span onclick="@(() => SortTable("Composer"))">Composer</span>
+                         <span class="oi @(GetSortStyle("Composer"))"></span>
+                     </th>
+                     <th>
+                         <span onclick="@(() => SortTable("Genre"))">Genre</span>
+                         <span class="oi @(GetSortStyle("Genre"))"></span>
+                     </th>
+                     <th>
+                         <span onclick="@(() => SortTable("Plays"))">Plays</span>
+                         <span class="oi @(GetSortStyle("Plays"))"></span>
+                     </th>
+                 }
+             </tr>
+             </thead>
+             <tbody>
+             @foreach (var song in _loadedSongs)
+             {
+                 <tr>
+                     <td>@song.Name</td>
+                     <td>@song.Artist</td>
+                     <td>@song.Year.Year</td>
+                     @if (_dataIsSpotify)
+                     {
+                         <td>@song.Popularity</td>
+                     }
+                     @if (!_dataIsSpotify)
+                     {
+                         <td>@song.Composer</td>
+                         <td>@song.Genre</td>
+                         <td>@song.Plays</td>
+                     }
+                 </tr>
+             }
+             </tbody>
+         </table>
+    }
 }
 
 @code {
-    private List<Song>? loadedSongs;
+    private List<Song>? _loadedSongs;
+    private bool _dataIsSpotify;
+    private bool _isSortedAscending;
+    private string _currentSortColumn;
 
     protected override async Task OnInitializedAsync()
     {
-        loadedSongs = await TableDataService.GetSongsAsync();
+        _loadedSongs = await TableDataService.GetSongsAsync();
+        if (_loadedSongs.Count == 0) return;
+        if (string.IsNullOrEmpty(_loadedSongs[0].Genre))
+        {
+            _dataIsSpotify = true;
+        }
+    }
+
+    //from https://exceptionnotfound.net/exploring-blazor-by-making-an-html-table-sortable-in-net-core/
+    private void SortTable(string columnName)
+    {
+        if (_loadedSongs == null) return;
+        //Sorting against a column that is not currently sorted against.
+        if(columnName != _currentSortColumn) 
+        {
+        //We need to force order by ascending on the new column
+        //This line uses reflection and will probably 
+        //perform inefficiently in a production environment.
+            _loadedSongs = _loadedSongs.OrderBy(x => 
+                x.GetType()
+                    .GetProperty(columnName)?.GetValue(x, null))
+                .ToList();
+            _currentSortColumn = columnName;
+            _isSortedAscending = true;
+
+        }
+        else //Sorting against same column but in different direction
+        {
+            if(_isSortedAscending)
+            {
+                _loadedSongs = _loadedSongs.OrderByDescending(x => 
+                    x.GetType()
+                        .GetProperty(columnName)?.GetValue(x, null))
+                    .ToList();
+            }
+            else
+            {
+                _loadedSongs = _loadedSongs.OrderBy(x => 
+                    x.GetType()
+                        .GetProperty(columnName)?.GetValue(x, null))
+                    .ToList();
+            }
+
+            //Toggle this boolean
+            _isSortedAscending = !_isSortedAscending;
+        }
+    }
+    
+    private string GetSortStyle(string columnName)
+    {
+        if(_currentSortColumn != columnName)
+        {
+            return string.Empty;
+        }
+        return _isSortedAscending ? "oi-sort-ascending" : "oi-sort-descending";
     }
 }

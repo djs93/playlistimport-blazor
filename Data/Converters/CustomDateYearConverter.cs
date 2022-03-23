@@ -11,10 +11,22 @@ public class CustomDateYearConverter : DefaultTypeConverter
     {
         if (text != "")
         {
-            var year = int.Parse(text);
-
-            var date = new DateOnly(year, 1, 1);
-            return date;
+            if (text.Contains('-'))
+            {
+                var split = text.Split('-');
+                var year = int.Parse(split[0]);
+                var month = int.Parse(split[1]);
+            
+                var date = new DateOnly(year, month, 1);
+                return date;
+            }
+            else
+            {
+                var year = int.Parse(text);
+            
+                var date = new DateOnly(year, 1, 1);
+                return date;
+            }
         }
         else
         {

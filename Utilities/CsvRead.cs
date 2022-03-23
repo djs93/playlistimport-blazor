@@ -21,6 +21,13 @@ public class CsvRead
         Printables.PrintDashSpacer();
         return records;
     }
+
+    public static async Task<List<T>> ReadRecordsAsync<T>(string filePath, ClassMap<T> map)
+    {
+        List<T> records;
+        var result = await Task.Run(() => ReadRecords(filePath, map));
+        return result;
+    }
     
     public static List<T> ReadDistinctRecords<T>(string filePath, ClassMap<T> map)
     {

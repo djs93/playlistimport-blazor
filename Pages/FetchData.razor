@@ -5,6 +5,7 @@
 @using playlistimport_blazor.Data
 @inject TableDataService TableDataService
 @inject NavigationManager _navigationManager
+@inject ILogger<FetchData> _logger
 
 <h1>Song List</h1>
 
@@ -23,6 +24,8 @@ else
     }
     @if (_loadedSongs.Count > 0)
     {
+        // Component to filter the table
+        <SongFilter SongList="_loadedSongs" GenreList="_genres"></SongFilter>
          <table class="table">
              <thead>
              <tr>
@@ -88,6 +91,7 @@ else
 
 @code {
     private List<Song>? _loadedSongs;
+    private List<string>? _genres;
     private bool _dataIsSpotify;
     private bool _isSortedAscending;
     private string _currentSortColumn;
@@ -95,6 +99,8 @@ else
     protected override async Task OnInitializedAsync()
     {
         _loadedSongs = await TableDataService.GetSongsAsync();
+        _genres = await TableDataService.GetGenresAsync();
+        _logger.LogInformation($"Number of genres: {_genres.Count}");
         if (_loadedSongs.Count == 0) return;
         if (string.IsNullOrEmpty(_loadedSongs[0].Genre))
         {

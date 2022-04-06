@@ -1,0 +1,38 @@
+﻿@using playlistimport_blazor.Data
+@inject TableDataService _tableDataService
+
+<EditForm Model="@_filterData" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    
+    <label for="artist">Artist</label>
+    <InputText id="artist" @bind-Value="_filterData.Artist" />
+    <label for="year">Year</label>
+    <InputNumber id="year" @bind-Value="_filterData.Year" />
+    @if (GenreList is {Count: > 1 })
+    {
+        <label for="genre">Genre</label>
+        <InputSelect id="genre" @bind-Value="_filterData.Genre">
+            @foreach (string genre in GenreList)
+            {
+                <option value="@genre">@genre</option>
+            }
+        </InputSelect>
+    }
+    
+    <label for="number">Number of Songs (Leave empty for all)</label>
+    <InputNumber id="number" @bind-Value="_filterData.NumberOfSongs" />
+
+    <button type="submit">Submit</button>
+</EditForm>
+
+@code {
+    private FilterData _filterData = new();
+    [Parameter] public List<string>? GenreList { get; set; }
+    [Parameter] public List<Song>? SongList { get; set; }
+
+    private void HandleValidSubmit()
+    {
+    // Process the valid filters
+    }
+}

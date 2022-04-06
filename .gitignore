@@ -107,3 +107,9 @@ bld/
 msbuild.log
 msbuild.err
 msbuild.wrn
+
+Development/unsafe_uploads
+/.idea/.idea.playlistimport-blazor.dir/.idea/discord.xml
+/.idea/.idea.playlistimport-blazor.dir/.idea/encodings.xml
+/.idea/.idea.playlistimport-blazor.dir/.idea/indexLayout.xml
+/.idea/.idea.playlistimport-blazor.dir/.idea/vcs.xml

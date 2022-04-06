@@ -43,7 +43,7 @@
             await fs.FlushAsync();
             await fs.DisposeAsync();
             var songs = await CsvRead.ReadRecordsAsync(path, new SongMap());
-            await _tableDataService.SetSongsAsync(songs);
+            await TableDataService.SetSongsAsync(songs);
         }
         catch (Exception ex)
         {

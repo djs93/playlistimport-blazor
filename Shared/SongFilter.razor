@@ -9,7 +9,7 @@
     <InputText id="artist" @bind-Value="_filterData.Artist" />
     <label for="year">Year</label>
     <InputNumber id="year" @bind-Value="_filterData.Year" />
-    @if (GenreList is {Count: > 1 })
+    @if (!DataIsSpotify && GenreList is {Count: > 1 })
     {
         <label for="genre">Genre</label>
         <InputSelect id="genre" @bind-Value="_filterData.Genre">
@@ -30,9 +30,18 @@
     private FilterData _filterData = new();
     [Parameter] public List<string>? GenreList { get; set; }
     [Parameter] public List<Song>? SongList { get; set; }
+    [Parameter] public Delegate? RefreshFunc { get; set; }
+    [Parameter] public bool DataIsSpotify { get; set; }
 
     private void HandleValidSubmit()
     {
-    // Process the valid filters
+        if (DataIsSpotify || GenreList is not {Count: > 1 })
+        {
+            _filterData.Genre = null;
+        }
+        // Process the valid filters
+        TableDataService.ClearFiltersAsync();
+        TableDataService.ApplyFiltersAsync(_filterData);
+        RefreshFunc?.DynamicInvoke();
     }
 }

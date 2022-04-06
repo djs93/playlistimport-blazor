@@ -25,7 +25,7 @@ else
     @if (_loadedSongs.Count > 0)
     {
         // Component to filter the table
-        <SongFilter SongList="_loadedSongs" GenreList="_genres"></SongFilter>
+        <SongFilter SongList="_loadedSongs" GenreList="_genres" RefreshFunc="RefreshTable" DataIsSpotify="_dataIsSpotify"/>
          <table class="table">
              <thead>
              <tr>
@@ -102,7 +102,7 @@ else
         _genres = await TableDataService.GetGenresAsync();
         _logger.LogInformation($"Number of genres: {_genres.Count}");
         if (_loadedSongs.Count == 0) return;
-        if (string.IsNullOrEmpty(_loadedSongs[0].Genre))
+        if (string.IsNullOrWhiteSpace(_loadedSongs[0].Genre))
         {
             _dataIsSpotify = true;
         }
@@ -155,5 +155,12 @@ else
             return string.Empty;
         }
         return _isSortedAscending ? "oi-sort-ascending" : "oi-sort-descending";
+    }
+    
+    private async void RefreshTable()
+    {
+        StateHasChanged();
+        _loadedSongs = await TableDataService.GetSongsAsync();
+        _genres = await TableDataService.GetGenresAsync();
     }
 }
